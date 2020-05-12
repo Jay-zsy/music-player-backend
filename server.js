@@ -55,6 +55,7 @@ app
 app.get("/spotify", function (req, res) {
   let state = generateRandomString(16);
   res.cookie(stateKey, state);
+  console.log(stateKey, state);
   // your application requests authorization
   let scope = SCOPE;
   res.redirect(
@@ -106,8 +107,9 @@ app.get("/spotifycallback", function (req, res) {
         const access_token = response.data.access_token;
         const refresh_token = response.data.refresh_token;
         res.cookie("spotify_access_token", access_token);
+        res.cookie("spotify_refresh_token", refresh_token);
         console.log(response);
-        // res.cookie("refresh_token", refresh_token); we prob want to send this to the database instead
+        // res.cookie("refresh_token", refresh_token); we prob want to send this to the database instead ??
         axios({
           method: "get",
           url: "https://api.spotify.com/v1/me",
@@ -160,34 +162,35 @@ app.get("/spotifycallback", function (req, res) {
 //   }
 
 app.get("/refresh_token", function (req, res) {
-  console.log("afterwards");
   // requesting access token from refresh token
-  let refresh_token = req.cookies.refresh_token;
+  let refresh_token = req.cookies.spotify_refresh_token;
   console.log(refresh_token);
-  let authOptions = {
+
+  const params = {
+    grant_type: "refresh_token",
+    refresh_token: refresh_token,
+  };
+
+  axios({
+    method: "post",
     url: "https://accounts.spotify.com/api/token",
+    params,
     headers: {
       Authorization:
         "Basic " +
-        new Buffer(SPOTIFY_CLIENT_ID + ":" + SPOTIFY_CLIENT_SECRET).toString(
-          "base64"
-        ),
+        new Buffer.from(
+          SPOTIFY_CLIENT_ID + ":" + SPOTIFY_CLIENT_SECRET
+        ).toString("base64"),
     },
-    form: {
-      grant_type: "refresh_token",
-      refresh_token: refresh_token,
-    },
-    json: true,
-  };
-
-  axios.post(authOptions, function (error, response, body) {
-    console.log(error, response, body);
-    if (!error && response.statusCode === 200) {
-      let access_token = body.access_token;
+  })
+    .then((response) => {
+      let access_token = response.data.access_token;
       res.cookie("access_token", access_token);
       res.status(204).send();
-    }
-  });
+    })
+    .catch((e) => {
+      console.log(e);
+    });
 });
 
 // app.get("/genius", function (req, res) {
