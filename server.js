@@ -46,9 +46,21 @@ let app = express();
 
 app.use(express.json());
 
+const whitelist = ["http://localhost:3000"];
+const corsOptions = {
+  credentials: true,
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+};
+
 app
   .use(express.static(__dirname + "/build"))
-  .use(cors({ credentials: true, origin: "*" }))
+  .use(cors(corsOptions))
   .use(cookieParser())
   .use(morgan("dev"));
 
@@ -164,7 +176,6 @@ app.get("/spotifycallback", function (req, res) {
 app.get("/refresh_token", function (req, res) {
   // requesting access token from refresh token
   let refresh_token = req.cookies.spotify_refresh_token;
-  console.log(refresh_token);
 
   const params = {
     grant_type: "refresh_token",
