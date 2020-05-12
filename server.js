@@ -140,39 +140,6 @@ app.get("/spotifycallback", function (req, res) {
   }
 });
 
-//     axios.post(authOptions, function (error, response, body) {
-//       if (!error && response.statusCode === 200) {
-//         console.log(body);
-//         let access_token = body.access_token,
-//           refresh_token = body.refresh_token;
-//         console.log("Got the access token!");
-//         res.cookie("access_token", access_token);
-//         res.cookie("refresh_token", refresh_token);
-//         let options = {
-//           url: "https://api.spotify.com/v1/me",
-//           headers: { Authorization: "Bearer " + access_token },
-//           json: true,
-//         };
-
-//         // use the access token to access the Spotify Web API
-//         axios.get(options, function (error, response, body) {
-//           console.log(body);
-//         });
-
-//         // we can also pass the token to the browser to make requests from there
-//         res.redirect(FRONTEND_CALLBACK_URL);
-//       } else {
-//         res.redirect(
-//           FRONTEND_CALLBACK_URL +
-//             "?error=" +
-//             querystring.stringify({
-//               error: "invalid_token",
-//             })
-//         );
-//       }
-//     });
-//   }
-
 app.get("/refresh_token", function (req, res) {
   // requesting access token from refresh token
   let refresh_token = req.cookies.spotify_refresh_token;
