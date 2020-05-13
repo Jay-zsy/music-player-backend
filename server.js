@@ -14,6 +14,7 @@ const morgan = require("morgan");
 const PORT = process.env.PORT || 8888; // When you build, heroku has their own port
 const querystring = require("querystring");
 const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const cheerio = require("cheerio");
 
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID; // Your spotify client id
@@ -24,6 +25,7 @@ const GENIUS_CLIENT_SECRET = process.env.GENIUS_CLIENT_SECRET; // Your genius se
 const GENIUS_CALLBACK_URI = process.env.GENIUS_CALLBACK_URI; // Your genius redirect uri
 const FRONTEND_CALLBACK_URL = process.env.FRONTEND_CALLBACK_URL; // Your frontend uri
 const SCOPE = process.env.SCOPE;
+const KEYS = process.env.KEYS;
 /**
  * Generates a random string containing numbers and letters
  * @param  {number} length The length of the string
@@ -46,28 +48,45 @@ let app = express();
 
 app.use(express.json());
 
-const whitelist = ["http://localhost:3000"];
+// const whitelist = ["http://localhost:3000"];
+// const corsOptions = {
+//   credentials: true,
+//   origin: function (origin, callback) {
+//     if (whitelist.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+// };
+
 const corsOptions = {
   credentials: true,
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: "*",
 };
 
 app
+  // .use(
+  //   cookieSession({
+  //     name: "session",
+  //     keys: [KEYS],
+
+  //     // Cookie Options
+  //     maxAge: 60 * 60 * 1000, // 1 hours
+  //   })
+  // )
   .use(express.static(__dirname + "/build"))
   .use(cors(corsOptions))
   .use(cookieParser())
   .use(morgan("dev"));
 
+app.get("/", function (req, res) {
+  res.redirect("/spotify");
+});
+
 app.get("/spotify", function (req, res) {
   let state = generateRandomString(16);
   res.cookie(stateKey, state);
-  console.log(stateKey, state);
   // your application requests authorization
   let scope = SCOPE;
   res.redirect(
@@ -120,8 +139,7 @@ app.get("/spotifycallback", function (req, res) {
         const refresh_token = response.data.refresh_token;
         res.cookie("spotify_access_token", access_token);
         res.cookie("spotify_refresh_token", refresh_token);
-        console.log(response);
-        // res.cookie("refresh_token", refresh_token); we prob want to send this to the database instead ??
+
         axios({
           method: "get",
           url: "https://api.spotify.com/v1/me",
@@ -162,9 +180,11 @@ app.get("/refresh_token", function (req, res) {
     },
   })
     .then((response) => {
+      // console.log("this is the response data from spotify: ", response.data);
       let access_token = response.data.access_token;
-      res.cookie("access_token", access_token);
-      res.status(204).send();
+      res.cookie("spotify_access_token", access_token);
+
+      res.status(204).json({ spotify_access_token: access_token });
     })
     .catch((e) => {
       console.log(e);
