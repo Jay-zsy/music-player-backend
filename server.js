@@ -137,8 +137,6 @@ app.get("/spotifycallback", function (req, res) {
       .then((response) => {
         const access_token = response.data.access_token;
         const refresh_token = response.data.refresh_token;
-        res.cookie("spotify_access_token", access_token);
-        res.cookie("spotify_refresh_token", refresh_token);
 
         axios({
           method: "get",
@@ -147,6 +145,8 @@ app.get("/spotifycallback", function (req, res) {
         })
           .then(() => {
             res.redirect(FRONTEND_CALLBACK_URL);
+            res.cookie("spotify_access_token", access_token);
+            res.cookie("spotify_refresh_token", refresh_token);
           })
           .catch((e) => {
             res.redirect(
