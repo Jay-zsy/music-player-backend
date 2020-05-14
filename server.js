@@ -48,22 +48,22 @@ let app = express();
 
 app.use(express.json());
 
-// const whitelist = ["http://localhost:3000"];
-// const corsOptions = {
-//   credentials: true,
-//   origin: function (origin, callback) {
-//     if (whitelist.indexOf(origin) !== -1) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("Not allowed by CORS"));
-//     }
-//   },
-// };
-
+const whitelist = ["https://my-personal-music-player.netlify.app"];
 const corsOptions = {
   credentials: true,
-  origin: "*",
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
 };
+
+// const corsOptions = {
+//   credentials: true,
+//   origin: "*",
+// };
 
 app
   // .use(
