@@ -47,8 +47,20 @@ let stateKey = "spotify_auth_state";
 let app = express();
 
 app.use(express.json());
-
-// const whitelist = ["https://my-personal-music-player.netlify.app"];
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Credentials", true);
+  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin,X-Requested-With,Content-Type,Accept,content-type,application/json"
+  );
+  next();
+});
+// const whitelist = [
+//   "https://my-personal-music-player.netlify.app",
+//   "http://localhost/3000",
+// ];
 // const corsOptions = {
 //   credentials: true,
 //   origin: function (origin, callback) {
@@ -81,7 +93,7 @@ app
   .use(morgan("dev"));
 
 app.get("/", function (req, res) {
-  res.redirect("/spotify");
+  res.send("I am a teapot");
 });
 
 app.get("/spotify", function (req, res) {
@@ -137,6 +149,8 @@ app.get("/spotifycallback", function (req, res) {
       .then((response) => {
         const access_token = response.data.access_token;
         const refresh_token = response.data.refresh_token;
+        // res.cookie("spotify_access_token", access_token);
+        // res.cookie("spotify_refresh_token", refresh_token);
 
         axios({
           method: "get",
@@ -144,9 +158,14 @@ app.get("/spotifycallback", function (req, res) {
           headers: { Authorization: "Bearer " + access_token },
         })
           .then(() => {
-            res.redirect(FRONTEND_CALLBACK_URL);
-            res.cookie("spotify_access_token", access_token);
-            res.cookie("spotify_refresh_token", refresh_token);
+            res.redirect(
+              FRONTEND_CALLBACK_URL +
+                "/#" +
+                querystring.stringify({
+                  access_token: access_token,
+                  refresh_token: refresh_token,
+                })
+            );
           })
           .catch((e) => {
             res.redirect(
