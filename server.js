@@ -113,7 +113,7 @@ app.get("/spotify", function (req, res) {
   );
 });
 
-app.get("/spotifycallback", function (req, res) {
+app.get("/api/spotifycallback", function (req, res) {
   // your application requests refresh and access tokens
   // after checking the state parameter
   let code = req.query.code || null;
@@ -177,7 +177,7 @@ app.get("/spotifycallback", function (req, res) {
   }
 });
 
-app.get("/refresh_token", function (req, res) {
+app.get("/api/refresh_token", function (req, res) {
   // requesting access token from refresh token
   let refresh_token = req.cookies.spotify_refresh_token;
 
